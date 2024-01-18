@@ -1,0 +1,78 @@
+
+//+------------------------------------------------------------------+
+//|                                       Double Stochastic MT5.mq5   |
+//|                                          Copyright 2022, forexroboteasy.com |
+//|                                        Developed by Forex Robot Easy Team |
+//+------------------------------------------------------------------+
+
+//--- indicator settings
+#property indicator_chart_window
+#property indicator_buffers 2
+#property indicator_color1 Red
+#property indicator_color2 Green
+
+//--- input parameters
+input int KPeriod=14;        // K Period
+input int DPeriod=3;         // D Period
+input int Slowing=3;         // Slowing value
+input int OverboughtLevel=80; // Overbought level
+input int OversoldLevel=20;   // Oversold level
+
+//--- buffers
+double StochasticBuffer[];
+double RsiBuffer[];
+
+//--- initialize indicator
+int OnInit()
+{
+   //--- indicator buffers mapping
+   SetIndexBuffer(0,StochasticBuffer,INDICATOR_DATA);
+   SetIndexBuffer(1,RsiBuffer,INDICATOR_DATA);
+
+   //--- indicator label
+   IndicatorSetString(INDICATOR_SHORTNAME,'Double Stochastic MT5');
+
+   //--- done
+   return(INIT_SUCCEEDED);
+}
+
+//--- calculate indicator
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+{
+   //--- check for bars count
+   if(rates_total<=0)
+      return(0);
+
+   //--- calculate Stochastic
+   int limit=MathMin(rates_total,BarsCalculated(StochasticBuffer));
+   for(int i=limit; i<rates_total; i++)
+   {
+      //--- calculate K value
+      double K=0;
+      for(int j=0; j<KPeriod; j++)
+         K+=high[i-j]-low[i-j];
+      K=K/KPeriod;
+
+      //--- calculate D value
+      double D=0;
+      for(int j=0; j<DPeriod; j++)
+         D+=high[i-j]-low[i-j];
+      D=D/DPeriod;
+
+      //--- store values
+      StochasticBuffer[i]=K;
+      RsiBuffer[i]=D;
+   }
+
+   //--- done
+   return(rates_total);
+}
